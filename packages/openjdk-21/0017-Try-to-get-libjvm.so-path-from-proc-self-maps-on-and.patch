@@ -27,7 +27,6 @@ index 0c1bd103670..27c38826255 100644
  
 +static bool read_so_path_from_maps(const char* so_name, char* buf, int buflen) {
 +  FILE *fp = fopen("/proc/self/maps", "r");
-+  assert(fp, "Failed to open /proc/self/maps");
 +  if (!fp) {
 +    return false;
 +  }
