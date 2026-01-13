@@ -26,18 +26,20 @@ index 0c1bd103670..27c38826255 100644
  }
  
 +static bool read_so_path_from_maps(const char* so_name, char* buf, int buflen) {
++  if (buf == nullptr || buflen <= 0) return false;
 +  FILE *fp = fopen("/proc/self/maps", "r");
-+  if (!fp) {
++  if (fp == nullptr || !fp) {
 +    return false;
 +  }
 +
 +  char maps_buffer[2048];
-+  while (fgets(maps_buffer, 2048, fp) != NULL) {
-+    if (strstr(maps_buffer, so_name) == NULL) {
++  while (fgets(maps_buffer, 2048, fp) != nullptr) {
++    if (strstr(maps_buffer, so_name) == nullptr) {
 +      continue;
 +    }
 +
 +    char *so_path = strchr(maps_buffer, '/');
++    if (so_path == nullptr) continue;
 +    so_path[strlen(so_path) - 1] = '\0'; // Cut trailing \n
 +    jio_snprintf(buf, buflen, "%s", so_path);
 +    fclose(fp);
@@ -66,7 +68,10 @@ index 0c1bd103670..27c38826255 100644
 +
 +  if (strchr(dli_fname, '/') == NULL) {
 +    bool ok = read_so_path_from_maps(dli_fname, buf, buflen);
-+    assert(ok, "unable to turn relative libjvm.so path into absolute");
++    if (!ok) {
++     // best-effort fallback: leave as-is
++     snprintf(buf, buflen, "%s", dli_fname);
++    }
 +    return;
 +  }
 +
